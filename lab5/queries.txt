@@ -1,0 +1,82 @@
+-- 1. Пользователи
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name text NOT NULL,
+  email text NOT NULL,
+  password text NOT NULL,
+  created_at timestamp NOT NULL
+);
+
+-- 2. Типы прав
+CREATE TABLE permission_types (
+  id SERIAL PRIMARY KEY,
+  type text NOT NULL
+);
+
+-- 3. Токены
+CREATE TABLE tokens (
+  id SERIAL PRIMARY KEY,
+  name text NOT NULL,
+  description text NOT NULL,
+  user_id int NOT NULL,
+  permission_id int NOT NULL,
+  created_at timestamp NOT NULL,
+  expires_at timestamp NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (permission_id) REFERENCES permission_types(id)
+);
+
+-- 4. Репозитории
+CREATE TABLE repositories (
+  id SERIAL PRIMARY KEY,
+  owner_id int NOT NULL,
+  name text NOT NULL,
+  provider text NOT NULL,
+  connected_at timestamp NOT NULL,
+  FOREIGN KEY (owner_id) REFERENCES users(id)
+);
+
+-- 5. Потоки обсуждений
+CREATE TABLE threads (
+  id SERIAL PRIMARY KEY,
+  text text NOT NULL,
+  author_id int NOT NULL,
+  created_at timestamp NOT NULL,
+  FOREIGN KEY (author_id) REFERENCES users(id)
+);
+
+-- 6. Статусы merge-запросов
+CREATE TABLE merge_request_status (
+  id SERIAL PRIMARY KEY,
+  status text NOT NULL
+);
+
+-- 7. Merge-запросы
+CREATE TABLE merge_requests (
+  id SERIAL PRIMARY KEY,
+  repository_id int NOT NULL,
+  request_id text NOT NULL,
+  title text NOT NULL,
+  author_id int NOT NULL,
+  thread_id int NOT NULL,
+  created_at timestamp NOT NULL,
+  merged_at timestamp,
+  status_id int NOT NULL,
+  FOREIGN KEY (repository_id) REFERENCES repositories(id),
+  FOREIGN KEY (author_id) REFERENCES users(id),
+  FOREIGN KEY (thread_id) REFERENCES threads(id),
+  FOREIGN KEY (status_id) REFERENCES merge_request_status(id)
+);
+
+-- 8. Метрики merge-запросов
+CREATE TABLE merge_metrics (
+  id SERIAL PRIMARY KEY,
+  merge_request_id int NOT NULL,
+  files_changed int NOT NULL,
+  lines_added int NOT NULL,
+  lines_deleted int NOT NULL,
+  comments_count int NOT NULL,
+  time_to_merge_hours float NOT NULL,
+  created_at timestamp NOT NULL,
+  FOREIGN KEY (merge_request_id) REFERENCES merge_requests(id)
+);
