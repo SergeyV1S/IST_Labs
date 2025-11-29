@@ -1,0 +1,127 @@
+CREATE TABLE пользователи (
+    идентификатор SERIAL PRIMARY KEY,
+    почта VARCHAR NOT NULL,
+    имя_пользователя VARCHAR NOT NULL,
+    дата_регистрации TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE статусы_запроса (
+    идентификатор SERIAL PRIMARY KEY,
+    название VARCHAR NOT NULL,
+    описание VARCHAR
+);
+
+CREATE TABLE авторы (
+    идентификатор SERIAL PRIMARY KEY,
+    имя_автора VARCHAR NOT NULL
+);
+
+CREATE TABLE жанры (
+    идентификатор SERIAL PRIMARY KEY,
+    название VARCHAR NOT NULL,
+    описание TEXT
+);
+
+CREATE TABLE книги (
+    идентификатор SERIAL PRIMARY KEY,
+    название VARCHAR NOT NULL,
+    автор INTEGER NOT NULL,
+    описание TEXT,
+    жанр INTEGER,
+    ссылка_на_обложку VARCHAR,
+    год_издания INTEGER
+);
+
+CREATE TABLE запросы_подбора (
+    идентификатор SERIAL PRIMARY KEY,
+    идентификатор_пользователя INTEGER NOT NULL,
+    дата_запроса TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    идентификатор_статуса INTEGER NOT NULL
+);
+
+CREATE TABLE рекомендации (
+    идентификатор SERIAL PRIMARY KEY,
+    идентификатор_запроса INTEGER NOT NULL,
+    идентификатор_книги INTEGER NOT NULL
+);
+
+CREATE TABLE рейтинги_книг (
+    идентификатор SERIAL PRIMARY KEY,
+    идентификатор_книги INTEGER NOT NULL,
+    источник VARCHAR NOT NULL,
+    рейтинг DECIMAL(3,2),
+    количество_отзывов INTEGER,
+    дата_обновления TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE жанры_книги (
+    идентификатор SERIAL PRIMARY KEY,
+    идентификатор_книги INTEGER NOT NULL,
+    идентификатор_жанра INTEGER NOT NULL
+);
+
+ALTER TABLE запросы_подбора 
+ADD CONSTRAINT fk_запросы_пользователь 
+FOREIGN KEY (идентификатор_пользователя) 
+REFERENCES пользователи(идентификатор);
+
+ALTER TABLE запросы_подбора 
+ADD CONSTRAINT fk_запросы_статус 
+FOREIGN KEY (идентификатор_статуса) 
+REFERENCES статусы_запроса(идентификатор);
+
+ALTER TABLE книги 
+ADD CONSTRAINT fk_книги_автор 
+FOREIGN KEY (автор) 
+REFERENCES авторы(идентификатор);
+
+ALTER TABLE рекомендации 
+ADD CONSTRAINT fk_рекомендации_запрос 
+FOREIGN KEY (идентификатор_запроса) 
+REFERENCES запросы_подбора(идентификатор);
+
+ALTER TABLE рекомендации 
+ADD CONSTRAINT fk_рекомендации_книга 
+FOREIGN KEY (идентификатор_книги) 
+REFERENCES книги(идентификатор);
+
+ALTER TABLE рейтинги_книг 
+ADD CONSTRAINT fk_рейтинги_книга 
+FOREIGN KEY (идентификатор_книги) 
+REFERENCES книги(идентификатор);
+
+ALTER TABLE жанры_книги 
+ADD CONSTRAINT fk_жанры_книги_книга 
+FOREIGN KEY (идентификатор_книги) 
+REFERENCES книги(идентификатор);
+
+ALTER TABLE жанры_книги 
+ADD CONSTRAINT fk_жанры_книги_жанр 
+FOREIGN KEY (идентификатор_жанра) 
+REFERENCES жанры(идентификатор);
+
+CREATE INDEX idx_пользователи_почта ON пользователи(почта);
+CREATE INDEX idx_книги_название ON книги(название);
+CREATE INDEX idx_книги_автор ON книги(автор);
+CREATE INDEX idx_книги_жанр ON книги(жанр);
+CREATE INDEX idx_запросы_пользователь ON запросы_подбора(идентификатор_пользователя);
+CREATE INDEX idx_запросы_дата ON запросы_подбора(дата_запроса);
+CREATE INDEX idx_рекомендации_запрос ON рекомендации(идентификатор_запроса);
+CREATE INDEX idx_рекомендации_книга ON рекомендации(идентификатор_книги);
+CREATE INDEX idx_рейтинги_книга ON рейтинги_книг(идентификатор_книги);
+CREATE INDEX idx_рейтинги_источник ON рейтинги_книг(источник);
+CREATE INDEX idx_жанры_книги_книга ON жанры_книги(идентификатор_книги);
+CREATE INDEX idx_жанры_книги_жанр ON жанры_книги(идентификатор_жанра);
+CREATE INDEX idx_авторы_имя ON авторы(имя_автора);
+
+INSERT INTO статусы_запроса (название, описание) VALUES 
+('в обработке', 'Запрос находится в процессе обработки ИИ'),
+('завершен', 'Рекомендации успешно сгенерированы'),
+('ошибка', 'Произошла ошибка при обработке запроса');
+
+INSERT INTO жанры (название, описание) VALUES 
+('Фэнтези', 'Книги о вымышленных мирах с магией и мифическими существами'),
+('Научная фантастика', 'Произведения, основанные на научных или технологических концепциях'),
+('Детектив', 'Книги с загадками и расследованиями'),
+('Роман', 'Художественная проза о чувствах и отношениях'),
+('Ужасы', 'Произведения, вызывающие чувство страха и тревоги');
